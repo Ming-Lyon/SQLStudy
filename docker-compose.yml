@@ -1,0 +1,55 @@
+services:
+
+  postgres:
+    image: postgres:17
+    container_name: postgres-csv
+
+    environment:
+      POSTGRES_DB: csvdb
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+    restart: unless-stopped
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@local.fr
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+
+    ports:
+      - "8080:80"
+
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+      - ./pgadmin/servers.json:/pgadmin4/servers.json
+      - ./sql:/sql
+
+    depends_on:
+      - postgres
+
+    restart: unless-stopped
+
+  importer:
+    build: ./scripts
+
+    depends_on:
+      - postgres
+
+    volumes:
+      - ./csv:/csv
+
+    restart: "no"
+
+volumes:
+  pgdata:
+  pgadmin_data:
